@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 
-main()
+int main()
 {
 	/*  "cal" is an application which shows the calendar of the
 	    current year and month. "cal" with an argument specifying

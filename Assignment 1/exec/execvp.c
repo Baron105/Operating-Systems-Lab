@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 
-main()
+int main()
 {
 	char *arglist[3];
 
