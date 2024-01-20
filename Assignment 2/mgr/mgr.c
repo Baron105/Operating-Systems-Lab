@@ -84,6 +84,7 @@ int main()
             if (j == 10)
             {
                 printf("Process table is full. Quiting...");
+                exit(1);
             }
 
             // run job after forking
