@@ -53,7 +53,6 @@ int main(int argc, char* argv[])
 
 			while(ind--)
 			{
-				int pid = fork();
 				char ncity[20]={'\0'};
 				int idx=0;
 				// extract child city
@@ -62,6 +61,8 @@ int main(int argc, char* argv[])
 					idx++;
 					id++;
 				}
+				int pid = fork();
+
 				if (pid)
 				{
 					// child
