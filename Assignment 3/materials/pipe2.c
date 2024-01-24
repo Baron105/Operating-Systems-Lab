@@ -22,6 +22,7 @@ int main(void)
 		printf(" CHILD: exiting\n");
 		exit(0);
 	} else {
+		sleep(2);
 		printf("PARENT: reading from pipe\n");
 		// This read blocks.  Fortunately, the child
 		// writes to it in non-blocking mode and then closes it,
