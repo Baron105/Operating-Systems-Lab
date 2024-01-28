@@ -14,11 +14,13 @@
 
 #include <stdio.h>
 #include <sys/ipc.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <sys/shm.h>	/*  This file is necessary for using shared
 			    memory constructs
 			*/
 
-main()
+int main()
 {
 	int shmid, status;
 	int *a, *b;
