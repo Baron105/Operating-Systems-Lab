@@ -20,7 +20,7 @@
 
 main()
 {
-	int shmid. status;
+	int shmid, status;
 	int *a, *b;
 	int i;
 
