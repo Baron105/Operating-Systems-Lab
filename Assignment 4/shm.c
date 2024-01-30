@@ -55,7 +55,7 @@ int main()
 
 		for (i = 0; i < 10; i++)
 		{
-			sleep(1);
+			//sleep(0.5);
 			printf("\t\t\t Child reads: %d,%d\n", b[0], b[1]);
 		}
 		/* each process should "detach" itself from the
@@ -80,7 +80,7 @@ int main()
 		a[1] = 1;
 		for (i = 0; i < 10; i++)
 		{
-			sleep(2);
+			//sleep(0.5);
 			a[0] = a[0] + a[1];
 			a[1] = a[0] + a[1];
 			printf("Parent writes: %d,%d\n", a[0], a[1]);
