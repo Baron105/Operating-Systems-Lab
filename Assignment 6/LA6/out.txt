@@ -1,0 +1,67 @@
+gcc -Wall -o session -pthread -I. session.c event.o
+./session
+		[08:36 AM] Patient 1 arrives
+		[08:45 AM] Patient 2 arrives
+		[08:57 AM] Sales representative 1 arrives
+[09:00 AM] Doctor has new visitor
+		[09:03 AM] Reporter 1 arrives
+[09:00 AM - 09:08 AM] Patient 1 is in doctor's chamber
+[09:08 AM] Doctor has new visitor
+[09:08 AM - 09:10 AM] Reporter 1 is in doctor's chamber
+[09:10 AM] Doctor has new visitor
+[09:10 AM - 09:15 AM] Patient 2 is in doctor's chamber
+[09:15 AM] Doctor has new visitor
+[09:15 AM - 09:21 AM] Sales representative 1 is in doctor's chamber
+[09:21 AM] Doctor has new visitor
+		[09:26 AM] Patient 3 arrives
+		[09:50 AM] Patient 4 arrives
+		[10:02 AM] Patient 5 arrives
+		[10:04 AM] Reporter 2 arrives
+		[10:11 AM] Patient 6 arrives
+		[10:15 AM] Patient 7 arrives
+		[10:17 AM] Patient 8 arrives
+		[10:24 AM] Patient 9 arrives
+		[10:26 AM] Patient 10 arrives
+		[10:45 AM] Sales representative 2 arrives
+		[10:47 AM] Patient 11 arrives
+		[10:53 AM] Patient 12 arrives
+		[10:55 AM] Patient 13 arrives
+		[10:57 AM] Patient 14 arrives
+		[11:06 AM] Patient 15 arrives
+		[11:16 AM] Reporter 3 arrives
+		[11:17 AM] Patient 16 arrives
+		[11:41 AM] Reporter 4 arrives
+		[11:45 AM] Reporter 5 arrives
+		[11:52 AM] Reporter 6 arrives
+		[12:14 PM] Reporter 7 arrives
+		[12:15 PM] Patient 17 arrives
+		[12:19 PM] Sales representative 3 arrives
+		[12:20 PM] Patient 18 arrives
+		[12:23 PM] Reporter 8 arrives
+		[12:23 PM] Reporter 9 arrives
+		[12:24 PM] Patient 19 arrives
+		[12:26 PM] Patient 20 arrives
+		[12:31 PM] Sales representative 4 arrives
+		[12:31 PM] Sales representative 4 leaves (quota full)
+		[12:36 PM] Patient 21 arrives
+		[12:38 PM] Patient 22 arrives
+		[12:40 PM] Patient 23 arrives
+		[12:58 PM] Patient 24 arrives
+		[01:08 PM] Patient 25 arrives
+[01:08 PM] Doctor leaves (session over)
+		[01:17 PM] Sales representative 5 arrives
+		[01:17 PM] Sales representative 5 leaves (session over)
+		[01:25 PM] Patient 26 arrives
+		[01:25 PM] Patient 26 leaves (session over)
+		[01:31 PM] Patient 27 arrives
+		[01:31 PM] Patient 27 leaves (session over)
+		[01:47 PM] Patient 28 arrives
+		[01:47 PM] Patient 28 leaves (session over)
+		[01:52 PM] Patient 29 arrives
+		[01:52 PM] Patient 29 leaves (session over)
+		[02:04 PM] Reporter 10 arrives
+		[02:04 PM] Reporter 10 leaves (session over)
+		[02:26 PM] Reporter 11 arrives
+		[02:26 PM] Reporter 11 leaves (session over)
+		[02:29 PM] Patient 30 arrives
+		[02:29 PM] Patient 30 leaves (session over)
