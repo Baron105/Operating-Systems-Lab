@@ -230,7 +230,7 @@ int main()
 
             // check if quota is fulfilled for patients(25) and salesreps(3)
             pthread_mutex_lock(&dmutex);
-            if ((patient_count > 25 && salesrep_count > 3))
+            if ((patient_count == 25 && salesrep_count == 3) || (patient_count > 25 && salesrep_count == 3) || (patient_count == 25 && salesrep_count > 3) || (patient_count > 25 && salesrep_count > 3))
             {
                 // make done flag 1
                 // signal doctor
@@ -458,7 +458,7 @@ int main()
             pthread_mutex_unlock(&smutex);
         }
 
-        usleep(10);
+        usleep(1000);
     }
 
     // wait for doctor to finish
