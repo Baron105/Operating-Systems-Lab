@@ -56,7 +56,7 @@ int main()
     event doctor_coming;
     doctor_coming.time = 0;
     doctor_coming.type = 'D';
-    doctor_coming.duration = 1;
+    doctor_coming.duration = 0;
 
     E = addevent(E, doctor_coming);
 
@@ -94,16 +94,6 @@ int main()
         {
             // means doctor is available
             doc = 1;
-
-            if (e.duration == 1)
-            {
-                pthread_mutex_lock(&dmutex);
-                dt = 0;
-                sig = 1;
-                treat = 0;
-                pthread_cond_signal(&dcond);
-                pthread_mutex_unlock(&dmutex);
-            }
 
             // check if people are waiting
             // signal appropriate threads
@@ -240,6 +230,14 @@ int main()
                 treat = 0;
                 pthread_cond_signal(&dcond);
                 pthread_mutex_unlock(&dmutex);
+
+                pthread_mutex_lock(&dmutex);
+                while (sig)
+                    pthread_cond_wait(&dcond, &dmutex);
+                pthread_mutex_unlock(&dmutex);
+
+                // join doctor thread
+                pthread_join(doctor_thread, NULL);
             }
             pthread_mutex_unlock(&dmutex);
         }
