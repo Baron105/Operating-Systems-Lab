@@ -8,8 +8,7 @@
 // array of threads
 pthread_t patients[50], reporters[20], salesreps[10];
 
-// array of patient, reporter, and salesrep time and duration
-int patient_time[50], reporter_time[20], salesrep_time[10];
+// array of patient, reporter, and salesrep duration
 int patient_duration[50], reporter_duration[20], salesrep_duration[10];
 
 // global variables
@@ -47,7 +46,7 @@ int main()
     // main function, assistant thread
 
     // initialize event queue
-    eventQ E = initEQ("arrival2.txt");
+    eventQ E = initEQ("arrival.txt");
 
     // create doctor thread
     pthread_t doctor_thread;
@@ -88,7 +87,7 @@ int main()
             am = 0;
 
         // print event
-        // printf("\t\t\t\tEvent Type: %c, Time: %02d:%02d %s\n", e.type, hours, minutes, am ? "AM" : "PM");
+        // printf("\t\t\t\tEvent Type: %c, Time: %02d:%02d%s\n", e.type, hours, minutes, am ? "am" : "pm");
 
         // process event
         if (e.type == 'D')
@@ -121,7 +120,12 @@ int main()
                 pthread_cond_signal(&dcond);
                 pthread_mutex_unlock(&dmutex);
 
-                usleep(100000);
+                pthread_mutex_lock(&dmutex);
+                while (sig)
+                    pthread_cond_wait(&dcond, &dmutex);
+                pthread_mutex_unlock(&dmutex);
+
+                // usleep(100000);
 
                 // increment reporter index
                 reporter_index++;
@@ -129,12 +133,13 @@ int main()
                 pthread_cond_signal(&rcond);
                 pthread_mutex_unlock(&rmutex);
 
+                pthread_join(reporters[reporter_index], NULL);
+
                 // insert next reporter event
                 event next_reporter;
                 next_reporter.time = t + reporter_duration[reporter_index];
                 next_reporter.type = 'D';
                 next_reporter.duration = 0;
-                reporter_time[reporter_index] = t;
 
                 E = addevent(E, next_reporter);
 
@@ -153,7 +158,12 @@ int main()
                 pthread_cond_signal(&dcond);
                 pthread_mutex_unlock(&dmutex);
 
-                usleep(100000);
+                pthread_mutex_lock(&dmutex);
+                while (sig)
+                    pthread_cond_wait(&dcond, &dmutex);
+                pthread_mutex_unlock(&dmutex);
+
+                // usleep(100000);
 
                 // increment patient index
                 patient_index++;
@@ -161,12 +171,13 @@ int main()
                 pthread_cond_signal(&pcond);
                 pthread_mutex_unlock(&pmutex);
 
+                pthread_join(patients[patient_index], NULL);
+
                 // insert next patient event
                 event next_patient;
                 next_patient.time = t + patient_duration[patient_index];
                 next_patient.type = 'D';
                 next_patient.duration = 0;
-                patient_time[patient_index] = t;
 
                 E = addevent(E, next_patient);
 
@@ -185,7 +196,12 @@ int main()
                 pthread_cond_signal(&dcond);
                 pthread_mutex_unlock(&dmutex);
 
-                usleep(100000);
+                pthread_mutex_lock(&dmutex);
+                while (sig)
+                    pthread_cond_wait(&dcond, &dmutex);
+                pthread_mutex_unlock(&dmutex);
+
+                // usleep(100000);
 
                 // increment salesrep index
                 salesrep_index++;
@@ -193,12 +209,13 @@ int main()
                 pthread_cond_signal(&scond);
                 pthread_mutex_unlock(&smutex);
 
+                pthread_join(salesreps[salesrep_index], NULL);
+
                 // insert next salesrep event
                 event next_salesrep;
                 next_salesrep.time = t + salesrep_duration[salesrep_index];
                 next_salesrep.type = 'D';
                 next_salesrep.duration = 0;
-                salesrep_time[salesrep_index] = t;
 
                 E = addevent(E, next_salesrep);
 
@@ -232,12 +249,12 @@ int main()
             // reporter arrived
             pthread_mutex_lock(&rmutex);
             reporter_count++;
-            printf("\t\t[%02d:%02d %s] Reporter %d arrives\n", hours, minutes, am ? "AM" : "PM", reporter_count);
+            printf("\t\t[%02d:%02d%s] Reporter %d arrives\n", hours, minutes, am ? "am" : "pm", reporter_count);
 
             // check if session is over
             if (done)
             {
-                printf("\t\t[%02d:%02d %s] Reporter %d leaves (session over)\n", hours, minutes, am ? "AM" : "PM", reporter_count);
+                printf("\t\t[%02d:%02d%s] Reporter %d leaves (session over)\n", hours, minutes, am ? "am" : "pm", reporter_count);
                 pthread_mutex_unlock(&rmutex);
                 continue;
             }
@@ -260,7 +277,12 @@ int main()
                 pthread_cond_signal(&dcond);
                 pthread_mutex_unlock(&dmutex);
 
-                usleep(100000);
+                pthread_mutex_lock(&dmutex);
+                while (sig)
+                    pthread_cond_wait(&dcond, &dmutex);
+                pthread_mutex_unlock(&dmutex);
+
+                // usleep(100000);
 
                 // signal the reporter as well
                 pthread_mutex_lock(&rmutex);
@@ -268,12 +290,13 @@ int main()
                 pthread_cond_signal(&rcond);
                 pthread_mutex_unlock(&rmutex);
 
+                pthread_join(reporters[reporter_index], NULL);
+
                 // insert next reporter event
                 event next_reporter;
                 next_reporter.time = t + e.duration;
                 next_reporter.type = 'D';
                 next_reporter.duration = 0;
-                reporter_time[reporter_index] = t;
 
                 E = addevent(E, next_reporter);
 
@@ -292,12 +315,12 @@ int main()
             // patient arrived
             pthread_mutex_lock(&pmutex);
             patient_count++;
-            printf("\t\t[%02d:%02d %s] Patient %d arrives\n", hours, minutes, am ? "AM" : "PM", patient_count);
+            printf("\t\t[%02d:%02d%s] Patient %d arrives\n", hours, minutes, am ? "am" : "pm", patient_count);
 
             // check if session is over
             if (done)
             {
-                printf("\t\t[%02d:%02d %s] Patient %d leaves (session over)\n", hours, minutes, am ? "AM" : "PM", patient_count);
+                printf("\t\t[%02d:%02d%s] Patient %d leaves (session over)\n", hours, minutes, am ? "am" : "pm", patient_count);
                 pthread_mutex_unlock(&pmutex);
                 continue;
             }
@@ -305,7 +328,7 @@ int main()
             // check if already 25 patients have arrived
             if (patient_count > 25)
             {
-                printf("\t\t[%02d:%02d %s] Patient %d leaves (quota full)\n", hours, minutes, am ? "AM" : "PM", patient_count);
+                printf("\t\t[%02d:%02d%s] Patient %d leaves (quota full)\n", hours, minutes, am ? "am" : "pm", patient_count);
                 pthread_mutex_unlock(&pmutex);
                 continue;
             }
@@ -328,7 +351,12 @@ int main()
                 pthread_cond_signal(&dcond);
                 pthread_mutex_unlock(&dmutex);
 
-                usleep(100000);
+                pthread_mutex_lock(&dmutex);
+                while (sig)
+                    pthread_cond_wait(&dcond, &dmutex);
+                pthread_mutex_unlock(&dmutex);
+
+                // usleep(100000);
 
                 // signal the patient as well
                 pthread_mutex_lock(&pmutex);
@@ -336,12 +364,13 @@ int main()
                 pthread_cond_signal(&pcond);
                 pthread_mutex_unlock(&pmutex);
 
+                pthread_join(patients[patient_index], NULL);
+
                 // insert next patient event
                 event next_patient;
                 next_patient.time = t + e.duration;
                 next_patient.type = 'D';
                 next_patient.duration = 0;
-                patient_time[patient_index] = t;
 
                 E = addevent(E, next_patient);
 
@@ -360,12 +389,12 @@ int main()
             // salesrep arrived
             pthread_mutex_lock(&smutex);
             salesrep_count++;
-            printf("\t\t[%02d:%02d %s] Salesrep %d arrives\n", hours, minutes, am ? "AM" : "PM", salesrep_count);
+            printf("\t\t[%02d:%02d%s] Sales representative %d arrives\n", hours, minutes, am ? "am" : "pm", salesrep_count);
 
             // check if session is over
             if (done)
             {
-                printf("\t\t[%02d:%02d %s] Salesrep %d leaves (quota full)\n", hours, minutes, am ? "AM" : "PM", salesrep_count);
+                printf("\t\t[%02d:%02d%s] Sales representative %d leaves (quota full)\n", hours, minutes, am ? "am" : "pm", salesrep_count);
                 pthread_mutex_unlock(&smutex);
                 continue;
             }
@@ -373,7 +402,7 @@ int main()
             // check if already 3 salesreps have arrived
             if (salesrep_count > 3)
             {
-                printf("\t\t[%02d:%02d %s] Salesrep %d leaves (quota full)\n", hours, minutes, am ? "AM" : "PM", salesrep_count);
+                printf("\t\t[%02d:%02d%s] Sales representative %d leaves (quota full)\n", hours, minutes, am ? "am" : "pm", salesrep_count);
                 pthread_mutex_unlock(&smutex);
                 continue;
             }
@@ -396,7 +425,12 @@ int main()
                 pthread_cond_signal(&dcond);
                 pthread_mutex_unlock(&dmutex);
 
-                usleep(100000);
+                pthread_mutex_lock(&dmutex);
+                while (sig)
+                    pthread_cond_wait(&dcond, &dmutex);
+                pthread_mutex_unlock(&dmutex);
+
+                // usleep(100000);
 
                 // signal the salesrep as well
                 pthread_mutex_lock(&smutex);
@@ -404,12 +438,13 @@ int main()
                 pthread_cond_signal(&scond);
                 pthread_mutex_unlock(&smutex);
 
+                pthread_join(salesreps[salesrep_index], NULL);
+
                 // insert next salesrep event
                 event next_salesrep;
                 next_salesrep.time = t + e.duration;
                 next_salesrep.type = 'D';
                 next_salesrep.duration = 0;
-                salesrep_time[salesrep_index] = t;
 
                 E = addevent(E, next_salesrep);
 
@@ -423,11 +458,11 @@ int main()
             pthread_mutex_unlock(&smutex);
         }
 
-        usleep(100000);
+        usleep(10);
     }
 
     // wait for doctor to finish
-    // pthread_join(doctor_thread, NULL);
+    pthread_join(doctor_thread, NULL);
 
     return 0;
 }
@@ -441,9 +476,6 @@ void *doctor(void *arg)
         pthread_mutex_lock(&dmutex);
         while (!sig)
             pthread_cond_wait(&dcond, &dmutex);
-
-        // reset signal
-        sig = 0;
         pthread_mutex_unlock(&dmutex);
 
         // extract current time
@@ -467,12 +499,21 @@ void *doctor(void *arg)
         // check if session is over
         if (done)
         {
-            printf("[%02d:%02d %s] Doctor leaves (session over)\n", hours, minutes, am ? "AM" : "PM");
+            printf("[%02d:%02d%s] Doctor leaves (session over)\n", hours, minutes, am ? "am" : "pm");
+            pthread_mutex_lock(&dmutex);
+            sig = 0;
+            pthread_cond_signal(&dcond);
+            pthread_mutex_unlock(&dmutex);
             pthread_exit(NULL);
         }
 
         // print that doctor has new visitor
-        printf("[%02d:%02d %s] Doctor has new visitor\n", hours, minutes, am ? "AM" : "PM");
+        printf("[%02d:%02d%s] Doctor has next visitor\n", hours, minutes, am ? "am" : "pm");
+
+        pthread_mutex_lock(&dmutex);
+        sig = 0;
+        pthread_cond_signal(&dcond);
+        pthread_mutex_unlock(&dmutex);
     }
 }
 
@@ -489,7 +530,7 @@ void *patient(void *arg)
     pthread_mutex_unlock(&pmutex);
 
     // extract time and duration from array
-    int tt = patient_time[patient_number];
+    int tt = dt;
     int duration = patient_duration[patient_number];
 
     // convert time to hours and minutes wrt 9 am
@@ -518,7 +559,7 @@ void *patient(void *arg)
         am2 = 0;
 
     // print that patient is being treated
-    printf("[%02d:%02d %s - %02d:%02d %s] Patient %d is in doctor's chamber\n", hours, minutes, am ? "AM" : "PM", hours2, minutes2, am2 ? "AM" : "PM", patient_number);
+    printf("[%02d:%02d%s - %02d:%02d%s] Patient %d is in doctor's chamber\n", hours, minutes, am ? "am" : "pm", hours2, minutes2, am2 ? "am" : "pm", patient_number);
 
     pthread_exit(NULL);
 }
@@ -536,7 +577,7 @@ void *reporter(void *arg)
     pthread_mutex_unlock(&rmutex);
 
     // extract time and duration from array
-    int tt = reporter_time[reporter_number];
+    int tt = dt;
     int duration = reporter_duration[reporter_number];
 
     // convert time to hours and minutes wrt 9 am
@@ -565,7 +606,7 @@ void *reporter(void *arg)
         am2 = 0;
 
     // print that reporter is being treated
-    printf("[%02d:%02d %s - %02d:%02d %s] Reporter %d is in doctor's chamber\n", hours, minutes, am ? "AM" : "PM", hours2, minutes2, am2 ? "AM" : "PM", reporter_number);
+    printf("[%02d:%02d%s - %02d:%02d%s] Reporter %d is in doctor's chamber\n", hours, minutes, am ? "am" : "pm", hours2, minutes2, am2 ? "am" : "pm", reporter_number);
 
     pthread_exit(NULL);
 }
@@ -583,7 +624,7 @@ void *salesrep(void *arg)
     pthread_mutex_unlock(&smutex);
 
     // extract time and duration from array
-    int tt = salesrep_time[salesrep_number];
+    int tt = dt;
     int duration = salesrep_duration[salesrep_number];
 
     // convert time to hours and minutes wrt 9 am
@@ -612,7 +653,7 @@ void *salesrep(void *arg)
         am2 = 0;
 
     // print that salesrep is being treated
-    printf("[%02d:%02d %s - %02d:%02d %s] Salesrep %d is in doctor's chamber\n", hours, minutes, am ? "AM" : "PM", hours2, minutes2, am2 ? "AM" : "PM", salesrep_number);
+    printf("[%02d:%02d%s - %02d:%02d%s] Sales representative %d is in doctor's chamber\n", hours, minutes, am ? "am" : "pm", hours2, minutes2, am2 ? "am" : "pm", salesrep_number);
 
     pthread_exit(NULL);
 }
