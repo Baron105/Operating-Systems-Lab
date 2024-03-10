@@ -113,6 +113,16 @@ int main()
             pthread_mutex_lock(&rmutex);
             if (reporter_wait > 0)
             {
+                // signal doctor
+                pthread_mutex_lock(&dmutex);
+                sig = 1;
+                dt = t;
+                treat = 1;
+                pthread_cond_signal(&dcond);
+                pthread_mutex_unlock(&dmutex);
+
+                usleep(100000);
+
                 // increment reporter index
                 reporter_index++;
                 reporter_wait--;
@@ -128,14 +138,6 @@ int main()
 
                 E = addevent(E, next_reporter);
 
-                // signal doctor
-                pthread_mutex_lock(&dmutex);
-                sig = 1;
-                dt = reporter_time[reporter_index];
-                treat = 1;
-                pthread_cond_signal(&dcond);
-                pthread_mutex_unlock(&dmutex);
-
                 continue;
             }
             pthread_mutex_unlock(&rmutex);
@@ -143,6 +145,16 @@ int main()
             pthread_mutex_lock(&pmutex);
             if (patient_wait > 0)
             {
+                // signal doctor
+                pthread_mutex_lock(&dmutex);
+                sig = 1;
+                dt = t;
+                treat = 1;
+                pthread_cond_signal(&dcond);
+                pthread_mutex_unlock(&dmutex);
+
+                usleep(100000);
+
                 // increment patient index
                 patient_index++;
                 patient_wait--;
@@ -158,14 +170,6 @@ int main()
 
                 E = addevent(E, next_patient);
 
-                // signal doctor
-                pthread_mutex_lock(&dmutex);
-                sig = 1;
-                dt = patient_time[patient_index];
-                treat = 1;
-                pthread_cond_signal(&dcond);
-                pthread_mutex_unlock(&dmutex);
-
                 continue;
             }
             pthread_mutex_unlock(&pmutex);
@@ -173,6 +177,16 @@ int main()
             pthread_mutex_lock(&smutex);
             if (salesrep_wait > 0)
             {
+                // signal doctor
+                pthread_mutex_lock(&dmutex);
+                sig = 1;
+                dt = t;
+                treat = 1;
+                pthread_cond_signal(&dcond);
+                pthread_mutex_unlock(&dmutex);
+
+                usleep(100000);
+
                 // increment salesrep index
                 salesrep_index++;
                 salesrep_wait--;
@@ -187,14 +201,6 @@ int main()
                 salesrep_time[salesrep_index] = t;
 
                 E = addevent(E, next_salesrep);
-
-                // signal doctor
-                pthread_mutex_lock(&dmutex);
-                sig = 1;
-                dt = salesrep_time[salesrep_index];
-                treat = 1;
-                pthread_cond_signal(&dcond);
-                pthread_mutex_unlock(&dmutex);
 
                 continue;
             }
@@ -247,6 +253,15 @@ int main()
             pthread_mutex_lock(&dmutex);
             if (!treat && doc && !done)
             {
+                // signal doctor
+                sig = 1;
+                dt = t;
+                treat = 1;
+                pthread_cond_signal(&dcond);
+                pthread_mutex_unlock(&dmutex);
+
+                usleep(100000);
+
                 // signal the reporter as well
                 pthread_mutex_lock(&rmutex);
                 reporter_index++;
@@ -261,13 +276,6 @@ int main()
                 reporter_time[reporter_index] = t;
 
                 E = addevent(E, next_reporter);
-
-                // signal doctor
-                sig = 1;
-                dt = reporter_time[reporter_index];
-                treat = 1;
-                pthread_cond_signal(&dcond);
-                pthread_mutex_unlock(&dmutex);
 
                 continue;
             }
@@ -313,6 +321,15 @@ int main()
             pthread_mutex_lock(&dmutex);
             if (!treat && doc && !done)
             {
+                // signal doctor
+                sig = 1;
+                dt = t;
+                treat = 1;
+                pthread_cond_signal(&dcond);
+                pthread_mutex_unlock(&dmutex);
+
+                usleep(100000);
+
                 // signal the patient as well
                 pthread_mutex_lock(&pmutex);
                 patient_index++;
@@ -327,13 +344,6 @@ int main()
                 patient_time[patient_index] = t;
 
                 E = addevent(E, next_patient);
-
-                // signal doctor
-                sig = 1;
-                dt = patient_time[patient_index];
-                treat = 1;
-                pthread_cond_signal(&dcond);
-                pthread_mutex_unlock(&dmutex);
 
                 continue;
             }
@@ -379,6 +389,15 @@ int main()
             pthread_mutex_lock(&dmutex);
             if (!treat && doc && !done)
             {
+                // signal doctor
+                sig = 1;
+                dt = t;
+                treat = 1;
+                pthread_cond_signal(&dcond);
+                pthread_mutex_unlock(&dmutex);
+
+                usleep(100000);
+
                 // signal the salesrep as well
                 pthread_mutex_lock(&smutex);
                 salesrep_index++;
@@ -393,13 +412,6 @@ int main()
                 salesrep_time[salesrep_index] = t;
 
                 E = addevent(E, next_salesrep);
-
-                // signal doctor
-                sig = 1;
-                dt = salesrep_time[salesrep_index];
-                treat = 1;
-                pthread_cond_signal(&dcond);
-                pthread_mutex_unlock(&dmutex);
 
                 continue;
             }
