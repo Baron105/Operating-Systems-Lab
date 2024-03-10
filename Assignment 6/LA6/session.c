@@ -392,7 +392,7 @@ int main()
             // check if session is over
             if (done)
             {
-                printf("\t\t[%02d:%02d%s] Sales representative %d leaves (quota full)\n", hours, minutes, am ? "am" : "pm", salesrep_count);
+                printf("\t\t[%02d:%02d%s] Sales representative %d leaves (session over)\n", hours, minutes, am ? "am" : "pm", salesrep_count);
                 pthread_mutex_unlock(&smutex);
                 continue;
             }
