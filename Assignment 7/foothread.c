@@ -1,19 +1,22 @@
 #include "foothread.h"
 
+// set jointype in the attribute
 void foothread_attr_setjointype(foothread_attr_t *attr, int jointype)
 {
     attr->jointype = jointype;
 }
 
+// set stacksize in the attribute
 void foothread_attr_setstacksize(foothread_attr_t *attr, int stacksize)
 {
     attr->stacksize = stacksize;
 }
 
+// create a thread with the given attributes using clone
 void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_routine)(void *), void *arg)
 {
     num_threads++;
-    if (num_threads > MAX_THREADS)
+    if (num_threads > FOOTHREAD_THREADS_MAX)
     {
         printf("Max number of threads reached\n");
         exit(1);
@@ -23,7 +26,7 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
     void *stack = malloc(attr->stacksize);
     if (stack == NULL)
     {
-        perror("malloc");
+        perror("Memory allocation failed\n");
         exit(1);
     }
     void *stacktop = stack + attr->stacksize;
@@ -48,7 +51,7 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
 
     if (tid == -1)
     {
-        perror("clone");
+        perror("Clone failed\n");
         exit(1);
     }
 
@@ -60,13 +63,42 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
         thread->stacksize = attr->stacksize;
         thread->jointype = attr->jointype;
     }
+
+    // add the thread to the table
+    threads[num_threads - 1].tid = tid;
+    threads[num_threads - 1].stacksize = attr->stacksize;
+    threads[num_threads - 1].jointype = attr->jointype;
+    threads[num_threads - 1].ptid = gettid();
+
+    // create a semaphore for the thread
+    sem_init(&threads[num_threads - 1].mutex, 0, 1);
 }
 
+// exit the thread, more of a synchronization function
+void foothread_exit()
+{
+    // clear the thread from the table
+    for (int i = 0; i < num_threads; i++)
+    {
+        if (threads[i].tid == gettid())
+        {
+            threads[i].tid = 0;
+            threads[i].stacksize = 0;
+            threads[i].jointype = 0;
+            threads[i].ptid = 0;
+            sem_destroy(&threads[i].mutex);
+            break;
+        }
+    }
+}
+
+// initialize the mutex
 void foothread_mutex_init(foothread_mutex_t *mutex)
 {
     sem_init(&mutex->sem, 0, 1);
 }
 
+// lock the mutex
 void foothread_mutex_lock(foothread_mutex_t *mutex)
 {
     // wait until the semaphore is available
@@ -75,6 +107,7 @@ void foothread_mutex_lock(foothread_mutex_t *mutex)
     mutex->tid = gettid();
 }
 
+// unlock the mutex
 void foothread_mutex_unlock(foothread_mutex_t *mutex)
 {
     // check if the semaphore is unlocked already
@@ -101,12 +134,14 @@ void foothread_mutex_unlock(foothread_mutex_t *mutex)
     }
 }
 
+// destroy the mutex
 void foothread_mutex_destroy(foothread_mutex_t *mutex)
 {
     // destroy the semaphore
     sem_destroy(&mutex->sem);
 }
 
+// initialize the barrier
 void foothread_barrier_init(foothread_barrier_t *barrier, int max)
 {
     barrier->max = max;
@@ -115,6 +150,7 @@ void foothread_barrier_init(foothread_barrier_t *barrier, int max)
     sem_init(&barrier->sem, 0, 0);
 }
 
+// wait for all threads to reach the barrier
 void foothread_barrier_wait(foothread_barrier_t *barrier)
 {
     foothread_mutex_lock(&barrier->mut);
@@ -133,6 +169,7 @@ void foothread_barrier_wait(foothread_barrier_t *barrier)
     sem_wait(&barrier->sem);
 }
 
+// destroy the barrier
 void foothread_barrier_destroy(foothread_barrier_t *barrier)
 {
     sem_destroy(&barrier->sem);

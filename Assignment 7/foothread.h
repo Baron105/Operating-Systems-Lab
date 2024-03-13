@@ -23,7 +23,7 @@
 #define FOOTHREAD_JOINABLE 0
 #define FOOTHREAD_DETACHED 1
 
-typedef struct
+typedef struct table_t
 {
     pid_t tid;
     int stacksize;
@@ -32,14 +32,14 @@ typedef struct
     sem_t mutex;
 } table_t;
 
-typedef struct
+typedef struct foothread_t
 {
     pid_t tid;
     int stacksize;
     int jointype;
 } foothread_t;
 
-typedef struct
+typedef struct foothread_attr_t
 {
     int stacksize;
     int jointype;
@@ -56,10 +56,13 @@ typedef struct
     int count;
     int max;
     sem_t sem;
-    sem_t mut;
+    foothread_mutex_t mut;
 } foothread_barrier_t;
 
 int num_threads = 0;
+
+// table of threads
+table_t threads[FOOTHREAD_THREADS_MAX];
 
 void foothread_create(foothread_t *, foothread_attr_t *, int (*)(void *), void *);
 void foothread_attr_setjointype(foothread_attr_t *, int);
