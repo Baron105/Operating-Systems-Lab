@@ -13,15 +13,22 @@
 #include <unistd.h>
 #include <linux/sched.h>
 #include <sched.h>
-#include <semaphore.h>
 #include <errno.h>
+#include <string.h>
+#include <fcntl.h>
 
-#define FOOTHREAD_ATTR_INITIALIZER {FOOTHREAD_DEFAULT_STACK_SIZE, FOOTHREAD_DETACHED}
-#define FOOTHREAD_THREADS_MAX 20
-#define FOOTHREAD_DEFAULT_STACK_SIZE 2097152
+#define P(s) semop(s, &pop, 1)  // P(s) or wait(s)
+#define V(s) semop(s, &vop, 1)  // V(s) or signal(s)
+
+struct sembuf pop = {0, -1, 0};
+struct sembuf vop = {0, 1, 0};
 
 #define FOOTHREAD_JOINABLE 0
 #define FOOTHREAD_DETACHED 1
+
+#define FOOTHREAD_THREADS_MAX 20
+#define FOOTHREAD_DEFAULT_STACK_SIZE 2097152
+#define FOOTHREAD_ATTR_INITIALIZER {FOOTHREAD_DEFAULT_STACK_SIZE, FOOTHREAD_DETACHED}
 
 typedef struct table_t
 {
@@ -29,7 +36,8 @@ typedef struct table_t
     int stacksize;
     int jointype;
     pid_t ptid;
-    sem_t mutex;
+    int semid;
+    int child;
 } table_t;
 
 typedef struct foothread_t
@@ -48,15 +56,15 @@ typedef struct foothread_attr_t
 typedef struct
 {
     pid_t tid;
-    sem_t sem;
+    int mutid;
 } foothread_mutex_t;
 
 typedef struct
 {
     int count;
     int max;
-    sem_t sem;
-    foothread_mutex_t mut;
+    int semid;
+    int mutid;
 } foothread_barrier_t;
 
 int num_threads = 0;

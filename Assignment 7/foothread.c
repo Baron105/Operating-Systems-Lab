@@ -22,6 +22,12 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
         exit(1);
     }
 
+    // if the 2nd param is NULL, use the default values
+    if (attr == NULL)
+    {
+        *attr = (foothread_attr_t) FOOTHREAD_ATTR_INITIALIZER;
+    }
+
     // allocate memory for the stack
     void *stack = malloc(attr->stacksize);
     if (stack == NULL)
@@ -30,13 +36,6 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
         exit(1);
     }
     void *stacktop = stack + attr->stacksize;
-
-    // if the 2nd param is NULL, use the default values
-    if (attr == NULL)
-    {
-        attr->stacksize = FOOTHREAD_DEFAULT_STACK_SIZE;
-        attr->jointype = FOOTHREAD_DETACHED;
-    }
 
     // set the flags
     int flags = CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_SYSVSEM;
@@ -70,8 +69,11 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
     threads[num_threads - 1].jointype = attr->jointype;
     threads[num_threads - 1].ptid = gettid();
 
+    // increment the number of children of the parent thread
+    threads[num_threads - 1].child++;
+
     // create a semaphore for the thread
-    sem_init(&threads[num_threads - 1].mutex, 0, 1);
+    threads[num_threads - 1].semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
 }
 
 // exit the thread, more of a synchronization function
@@ -86,7 +88,10 @@ void foothread_exit()
             threads[i].stacksize = 0;
             threads[i].jointype = 0;
             threads[i].ptid = 0;
-            sem_destroy(&threads[i].mutex);
+            semctl(threads[i].semid, 0, IPC_RMID, 0);
+            threads[i].semid = 0;
+            threads[i].child = 0;
+            num_threads--;
             break;
         }
     }
@@ -95,14 +100,16 @@ void foothread_exit()
 // initialize the mutex
 void foothread_mutex_init(foothread_mutex_t *mutex)
 {
-    sem_init(&mutex->sem, 0, 1);
+    mutex->mutid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    // set the semaphore to 1
+    semctl(mutex->mutid, 0, SETVAL, 1);
 }
 
 // lock the mutex
 void foothread_mutex_lock(foothread_mutex_t *mutex)
 {
     // wait until the semaphore is available
-    sem_wait(&mutex->sem);
+    P(mutex->mutid);
     // after the semaphore is available, set the tid of thread that locked the mutex
     mutex->tid = gettid();
 }
@@ -112,7 +119,7 @@ void foothread_mutex_unlock(foothread_mutex_t *mutex)
 {
     // check if the semaphore is unlocked already
     int val;
-    sem_getvalue(&mutex->sem, &val);
+    val = semctl(mutex->mutid, 0, GETVAL);
     if (val > 0)
     {
         printf("Mutex is already unlocked\n");
@@ -129,7 +136,7 @@ void foothread_mutex_unlock(foothread_mutex_t *mutex)
         else
         {
             // unlock the semaphore
-            sem_post(&mutex->sem);
+            V(mutex->mutid);
         }
     }
 }
@@ -138,7 +145,7 @@ void foothread_mutex_unlock(foothread_mutex_t *mutex)
 void foothread_mutex_destroy(foothread_mutex_t *mutex)
 {
     // destroy the semaphore
-    sem_destroy(&mutex->sem);
+    semctl(mutex->mutid, 0, IPC_RMID, 0);
 }
 
 // initialize the barrier
@@ -146,32 +153,42 @@ void foothread_barrier_init(foothread_barrier_t *barrier, int max)
 {
     barrier->max = max;
     barrier->count = 0;
-    foothread_mutex_init(&barrier->mut);
-    sem_init(&barrier->sem, 0, 0);
+    barrier->mutid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    semctl(barrier->mutid, 0, SETVAL, 1);
+    barrier->semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    semctl(barrier->semid, 0, SETVAL, 0);
 }
 
 // wait for all threads to reach the barrier
 void foothread_barrier_wait(foothread_barrier_t *barrier)
 {
-    foothread_mutex_lock(&barrier->mut);
+    // lock the mutex
+    P(barrier->mutid);
     barrier->count++;
+    // unlock the mutex
+    V(barrier->mutid);
+
+    // if all threads have reached the barrier, unlock the semaphore
     if (barrier->count == barrier->max)
     {
-        barrier->count = 0;
-        for (int i = 0; i < barrier->max - 1; i++)
-        {
-            sem_post(&barrier->sem);
-        }
-        foothread_mutex_unlock(&barrier->mut);
-        return;
+        V(barrier->semid);
     }
-    foothread_mutex_unlock(&barrier->mut);
-    sem_wait(&barrier->sem);
+
+    // wait for the semaphore to be unlocked
+    P(barrier->semid);
+    // once the thread is unblocked, signal other threads to continue
+    V(barrier->semid);
+
+    // decrement the count
+    P(barrier->mutid);
+    barrier->count--;
+    V(barrier->mutid);
 }
 
 // destroy the barrier
 void foothread_barrier_destroy(foothread_barrier_t *barrier)
 {
-    sem_destroy(&barrier->sem);
-    foothread_mutex_destroy(&barrier->mut);
+    // destroy the semaphores
+    semctl(barrier->mutid, 0, IPC_RMID, 0);
+    semctl(barrier->semid, 0, IPC_RMID, 0);
 }
