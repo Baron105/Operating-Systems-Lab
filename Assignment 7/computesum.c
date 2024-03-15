@@ -12,7 +12,7 @@ foothread_mutex_t mutex;
 int compute_sum(void *arg)
 {
     // get the id of the thread
-    wait(mutex.mutid);
+    foothread_mutex_lock(&mutex);
     int *ptid = (int *)arg;
     int id = *ptid;
 
@@ -25,17 +25,17 @@ int compute_sum(void *arg)
         // it is a leaf node, ask the user for the value
         printf("Leaf node %3d :: Enter a positive integer: ", id);
         scanf("%d", &S[id]);
-        signal(mutex.mutid);
+        foothread_mutex_unlock(&mutex);
         // wait for the other threads to finish
         foothread_barrier_wait(&barrier[id]);
     }
     else
     {
-        signal(mutex.mutid);
+        foothread_mutex_unlock(&mutex);
         // it is not a leaf node
         // wait for the children to finish, then compute the sum
         foothread_barrier_wait(&barrier[id]);
-        wait(mutex.mutid);
+        foothread_mutex_lock(&mutex);
         for (int i = 0; i < n; i++)
         {
             if (P[i] == id && i != id)
@@ -44,7 +44,7 @@ int compute_sum(void *arg)
             }
         }
         printf("Internal node %3d gets the partial sum %d from its children\n", id, S[id]);
-        signal(mutex.mutid);
+        foothread_mutex_unlock(&mutex);
     }
     // wait for the parent to finish
     foothread_barrier_wait(&barrier[P[id]]);
@@ -107,7 +107,7 @@ int main()
     // printf("Sum: %d\n", sum);
     
     foothread_exit();
-    // sleep(10);
+    sleep(10);
 
     // find the node whos parent is itself
     int root;
