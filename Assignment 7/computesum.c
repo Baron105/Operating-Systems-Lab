@@ -38,7 +38,7 @@ int compute_sum(void *arg)
         wait(mutex.mutid);
         for (int i = 0; i < n; i++)
         {
-            if (P[i] == id)
+            if (P[i] == id && i != id)
             {
                 S[id] += S[i];
             }

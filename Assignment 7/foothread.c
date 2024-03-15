@@ -2,7 +2,8 @@
 
 // create a thread with the given attributes using clone
 void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_routine)(void *), void *arg)
-{
+{ 
+
     num_threads++;
     if (num_threads > FOOTHREAD_THREADS_MAX)
     {
@@ -97,13 +98,7 @@ void foothread_exit(void)
         // if it is same as ptid, it is the leader thread, make a barrier to wait for all children to finish
         if (threads[i].tid == current_tid && threads[i].ptid == current_tid)
         {
-            if (threads[i].child > 0)
-            {
-                foothread_barrier_init(&barrier, threads[i].child + 1);
-                foothread_barrier_wait(&barrier);
-                foothread_barrier_destroy(&barrier);
-            }
-            break;
+            
         }
     }
 
