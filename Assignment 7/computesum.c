@@ -107,7 +107,7 @@ int main()
     // printf("Sum: %d\n", sum);
     
     foothread_exit();
-    sleep(10);
+    // sleep(10);
 
     // find the node whos parent is itself
     int root;

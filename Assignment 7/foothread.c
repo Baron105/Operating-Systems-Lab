@@ -2,7 +2,8 @@
 
 // create a thread with the given attributes using clone
 void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_routine)(void *), void *arg)
-{ 
+{
+    // mutex for 
 
     num_threads++;
     if (num_threads > FOOTHREAD_THREADS_MAX)
@@ -92,15 +93,6 @@ void foothread_exit(void)
 {
     // get the tid of the current thread
     int current_tid = gettid();
-    
-    for (int i = 0; i < num_threads; i++)
-    {
-        // if it is same as ptid, it is the leader thread, make a barrier to wait for all children to finish
-        if (threads[i].tid == current_tid && threads[i].ptid == current_tid)
-        {
-            
-        }
-    }
 
     // clear the thread from the table
     for (int i = 0; i < num_threads; i++)
