@@ -23,7 +23,7 @@ int compute_sum(void *arg)
 
     // thread info
     // printf("thread: %02d tid: %d pid: %d\n", id, gettid(), getpid());
-    
+
     // check if the node is a leaf
     if (C[id] == 0)
     {
@@ -49,7 +49,7 @@ int compute_sum(void *arg)
         foothread_mutex_lock(&mutex);
         for (int i = 0; i < n; i++)
         {
-            if (P[i] == id && i != id)  // check if the node is a child of the current node, and not the same as the current node
+            if (P[i] == id && i != id) // check if the node is a child of the current node, and not the same as the current node
             {
                 S[id] += S[i];
             }
@@ -104,7 +104,8 @@ int main()
         C[parent]++;
         // printf("%d %d\n", node, parent);
 
-        if (node == parent) C[parent]--;    // root node has itself as parent, so decrement the count by 1
+        if (node == parent)
+            C[parent]--; // root node has itself as parent, so decrement the count by 1
     }
 
     // close the file, not needed anymore
@@ -117,7 +118,7 @@ int main()
     // initialize the barrier for each node
     for (int i = 0; i < n; i++)
     {
-        foothread_barrier_init(&barrier[i], C[i]+1);
+        foothread_barrier_init(&barrier[i], C[i] + 1);
     }
 
     // create n threads
@@ -138,7 +139,7 @@ int main()
         usleep(100);
     }
 
-    // wait for the threads to finish    
+    // wait for the threads to finish
     foothread_exit();
 
     // find the node who's parent is itself
@@ -162,5 +163,4 @@ int main()
     }
 
     return 0;
-
 }

@@ -23,7 +23,7 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
         threads[num_threads].child = 0;
         num_threads++;
     }
-    
+
     // lock the mutex
     wait(tmutex);
 
@@ -37,7 +37,7 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
     // if the 2nd param is NULL, use the default values
     if (attr == NULL)
     {
-        *attr = (foothread_attr_t) FOOTHREAD_ATTR_INITIALIZER;
+        *attr = (foothread_attr_t)FOOTHREAD_ATTR_INITIALIZER;
     }
 
     // allocate memory for the stack
@@ -54,7 +54,7 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
 
     // if (attr->jointype == FOOTHREAD_DETACHED)
     // {
-        // flags |= CLONE_THREAD;
+    // flags |= CLONE_THREAD;
     // }
 
     // create the thread
@@ -134,7 +134,7 @@ void foothread_exit(void)
             {
                 signal(tsem);
             }
-            
+
             // clear the thread from the table
             threads[i].tid = 0;
             threads[i].stacksize = 0;
@@ -188,7 +188,7 @@ void foothread_mutex_unlock(foothread_mutex_t *mutex)
         printf("Mutex is already unlocked\n");
         exit(1);
     }
-    else 
+    else
     {
         // check if the thread that is unlocking the mutex is the same as the one that locked it
         if (mutex->tid != gettid())

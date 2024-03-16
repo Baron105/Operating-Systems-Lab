@@ -17,8 +17,8 @@
 #include <string.h>
 #include <fcntl.h>
 
-#define wait(s) semop(s, &pop, 1)    // P(s) or wait(s)
-#define signal(s) semop(s, &vop, 1)  // V(s) or signal(s)
+#define wait(s) semop(s, &pop, 1)   // P(s) or wait(s)
+#define signal(s) semop(s, &vop, 1) // V(s) or signal(s)
 
 struct sembuf pop = {0, -1, 0};
 struct sembuf vop = {0, 1, 0};
@@ -28,7 +28,10 @@ struct sembuf vop = {0, 1, 0};
 
 #define FOOTHREAD_THREADS_MAX 101
 #define FOOTHREAD_DEFAULT_STACK_SIZE 2097152
-#define FOOTHREAD_ATTR_INITIALIZER {FOOTHREAD_DEFAULT_STACK_SIZE, FOOTHREAD_DETACHED}
+#define FOOTHREAD_ATTR_INITIALIZER                       \
+    {                                                    \
+        FOOTHREAD_DEFAULT_STACK_SIZE, FOOTHREAD_DETACHED \
+    }
 
 typedef struct table_t
 {
