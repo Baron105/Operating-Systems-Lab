@@ -3,7 +3,16 @@
 // create a thread with the given attributes using clone
 void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_routine)(void *), void *arg)
 {
-    // mutex for 
+    int tmutex = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+
+    // create the mutex the first time the function is called
+    if (num_threads == 0)
+    {
+        semctl(tmutex, 0, SETVAL, 1);
+    }
+    
+    // lock the mutex
+    wait(tmutex);
 
     num_threads++;
     if (num_threads > FOOTHREAD_THREADS_MAX)
@@ -74,6 +83,9 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
 
     // create a semaphore for the thread
     threads[num_threads - 1].semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+
+    // unlock the mutex
+    signal(tmutex);
 }
 
 // set jointype in the attribute
