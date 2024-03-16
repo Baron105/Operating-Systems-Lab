@@ -120,9 +120,6 @@ void foothread_exit(void)
 
     wait(tmutex);
 
-    // get the tid of the current thread
-    int current_tid = gettid();
-
     // check if the thread is in the table
     for (int i = 0; i < num_threads; i++)
     {
