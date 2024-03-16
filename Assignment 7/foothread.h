@@ -68,6 +68,8 @@ typedef struct foothread_barrier_t
 } foothread_barrier_t;
 
 int num_threads = 0;
+int barrierkey = 5;
+int mutexkey = 105;
 
 // table of threads
 table_t threads[FOOTHREAD_THREADS_MAX];

@@ -3,12 +3,17 @@
 // create a thread with the given attributes using clone
 void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_routine)(void *), void *arg)
 {
-    int tmutex = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    key_t key = ftok("foothread.c", 1);
+    int tmutex = semget(key, 1, 0666 | IPC_CREAT);
+    key = ftok("foothread.c", 2);
+    int tsem = semget(key, 1, 0666 | IPC_CREAT);
 
-    // create the mutex the first time the function is called
+    // initialize the mutex the first time the function is called
+    // also initialize the semaphore which waits for the threads to exit
     if (num_threads == 0)
     {
         semctl(tmutex, 0, SETVAL, 1);
+        semctl(tsem, 0, SETVAL, 0);
     }
     
     // lock the mutex
@@ -82,7 +87,7 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
     }
 
     // create a semaphore for the thread
-    threads[num_threads - 1].semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    // threads[num_threads - 1].semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
 
     // unlock the mutex
     signal(tmutex);
@@ -91,35 +96,75 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
 // set jointype in the attribute
 void foothread_attr_setjointype(foothread_attr_t *attr, int jointype)
 {
+    // key_t key = ftok("foothread.c", 1);
+    // int tmutex = semget(key, 1, 0666 | IPC_CREAT);
+    // wait(tmutex);
     attr->jointype = jointype;
+    // signal(tmutex);
 }
 
 // set stacksize in the attribute
 void foothread_attr_setstacksize(foothread_attr_t *attr, int stacksize)
 {
+    // key_t key = ftok("foothread.c", 1);
+    // int tmutex = semget(key, 1, 0666 | IPC_CREAT);
+    // wait(tmutex);
     attr->stacksize = stacksize;
+    // signal(tmutex);
 }
 
 // exit the thread, more of a synchronization function
 void foothread_exit(void)
 {
+    // lock the mutex
+    key_t key = ftok("foothread.c", 1);
+    int tmutex = semget(key, 1, 0666 | IPC_CREAT);
+    key = ftok("foothread.c", 2);
+    int tsem = semget(key, 1, 0666 | IPC_CREAT);
+
+    wait(tmutex);
+
     // get the tid of the current thread
     int current_tid = gettid();
 
-    // clear the thread from the table
+    // check if the thread is in the table
     for (int i = 0; i < num_threads; i++)
     {
         if (threads[i].tid == gettid())
         {
-            threads[i].tid = 0;
-            threads[i].stacksize = 0;
-            threads[i].jointype = 0;
-            threads[i].ptid = 0;
-            semctl(threads[i].semid, 0, IPC_RMID, 0);
-            threads[i].semid = 0;
-            threads[i].child = 0;
-            num_threads--;
-            break;
+            // if the thread is joinable, signal tsem
+            if (threads[i].jointype == FOOTHREAD_JOINABLE)
+            {
+                signal(tsem);
+            }
+            
+            // clear the thread from the table
+            // threads[i].tid = 0;
+            // threads[i].stacksize = 0;
+            // threads[i].jointype = 0;
+            // threads[i].ptid = 0;
+            // semctl(threads[i].semid, 0, IPC_RMID, 0);
+            // threads[i].semid = 0;
+            // threads[i].child = 0;
+            // num_threads--;
+
+            // unlock the mutex
+            signal(tmutex);
+            return;
+        }
+    }
+
+    // unlock the mutex
+    signal(tmutex);
+
+    // if we reach here, it means it is the parent thread
+    // wait for all the joinable threads to finish
+
+    for (int i = 0; i < num_threads; i++)
+    {
+        if (threads[i].ptid == current_tid && threads[i].jointype == FOOTHREAD_JOINABLE)
+        {
+            wait(tsem);
         }
     }
 }
@@ -127,7 +172,8 @@ void foothread_exit(void)
 // initialize the mutex
 void foothread_mutex_init(foothread_mutex_t *mutex)
 {
-    mutex->mutid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    key_t key = ftok("foothread.c", mutexkey++);
+    mutex->mutid = semget(key, 1, 0666 | IPC_CREAT);
     // set the semaphore to 1
     semctl(mutex->mutid, 0, SETVAL, 1);
 }
@@ -180,9 +226,11 @@ void foothread_barrier_init(foothread_barrier_t *barrier, int max)
 {
     barrier->max = max;
     barrier->count = 0;
-    barrier->mutid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    key_t key = ftok("foothread.c", mutexkey++);
+    barrier->mutid = semget(key, 1, 0666 | IPC_CREAT);
     semctl(barrier->mutid, 0, SETVAL, 1);
-    barrier->semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
+    key = ftok("foothread.c", barrierkey++);
+    barrier->semid = semget(key, 1, 0666 | IPC_CREAT);
     semctl(barrier->semid, 0, SETVAL, 0);
 }
 
@@ -207,9 +255,9 @@ void foothread_barrier_wait(foothread_barrier_t *barrier)
     signal(barrier->semid);
 
     // decrement the count
-    // wait(barrier->mutid);
-    // barrier->count--;
-    // signal(barrier->mutid);
+    wait(barrier->mutid);
+    barrier->count--;
+    signal(barrier->mutid);
 }
 
 // destroy the barrier

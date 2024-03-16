@@ -43,7 +43,16 @@ int compute_sum(void *arg)
                 S[id] += S[i];
             }
         }
-        printf("Internal node %3d gets the partial sum %d from its children\n", id, S[id]);
+        printf("Internal node %3d gets the partial sum %d from its children", id, S[id]);
+        // print the children
+        for (int i = 0; i < n; i++)
+        {
+            if (P[i] == id && i != id)
+            {
+                printf(" %d", i);
+            }
+        }
+        printf("\n");
         foothread_mutex_unlock(&mutex);
     }
     // wait for the parent to finish
@@ -101,13 +110,13 @@ int main()
         int *arg = (int *)malloc(sizeof(int));
         *arg = i;
         foothread_create(&thread, &attr, compute_sum, (void *)arg);
+        // printf("Thread %d created\n", i);
         usleep(100);
     }
 
     // printf("Sum: %d\n", sum);
     
     foothread_exit();
-    sleep(10);
 
     // find the node whos parent is itself
     int root;
@@ -121,6 +130,15 @@ int main()
     }
 
     printf("Sum at root (node %d) = %d\n", root, S[root]);
+
+    // destroy the synchronization variables
+    foothread_mutex_destroy(&mutex);
+    for (int i = 0; i < n; i++)
+    {
+        foothread_barrier_destroy(&barrier[i]);
+    }
+
+    printf("Main thread exits\n");
 
     return 0;
 
