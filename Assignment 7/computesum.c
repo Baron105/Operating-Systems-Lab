@@ -57,14 +57,14 @@ int compute_sum(void *arg)
 
         printf("Internal node %3d gets the partial sum %d from its children", id, S[id]);
 
-        // print the children, not needed in assignment
-        // for (int i = 0; i < n; i++)
-        // {
-        //     if (P[i] == id && i != id)
-        //     {
-        //         printf(" %d", i);
-        //     }
-        // }
+        // print the children, not needed in assignment, good for debugging
+        for (int i = 0; i < n; i++)
+        {
+            if (P[i] == id && i != id)
+            {
+                printf(" %d", i);
+            }
+        }
 
         printf("\n");
         // release the mutex
@@ -126,17 +126,21 @@ int main()
     {
         // make a thread for each node
         // initialize the attr with the default values
-        // set the jointype to joinable, as default is detached
         foothread_t thread;
         foothread_attr_t attr = FOOTHREAD_ATTR_INITIALIZER;
+
+        // set the jointype to joinable, as default is detached
+        // also set the stacksize to 1MB
         foothread_attr_setjointype(&attr, FOOTHREAD_JOINABLE);
+        foothread_attr_setstacksize(&attr, 1024 * 1024);
 
         // pass the id of the node as the argument
         int *arg = (int *)malloc(sizeof(int));
         *arg = i;
+
         foothread_create(&thread, &attr, compute_sum, (void *)arg);
+
         // printf("Thread %d created\n", i);
-        usleep(100);
     }
 
     // wait for the threads to finish

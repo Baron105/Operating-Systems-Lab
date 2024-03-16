@@ -3,6 +3,7 @@
 // create a thread with the given attributes using clone
 void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_routine)(void *), void *arg)
 {
+    // get the key for the mutex and semaphore, these are used for synchronization in the table
     key_t key = ftok("foothread.c", 1);
     int tmutex = semget(key, 1, 0666 | IPC_CREAT);
     key = ftok("foothread.c", 2);
@@ -28,6 +29,7 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
     wait(tmutex);
 
     num_threads++;
+    // check if the max number of threads is reached
     if (num_threads > FOOTHREAD_THREADS_MAX)
     {
         printf("Max number of threads reached\n");
@@ -47,19 +49,16 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
         perror("Memory allocation failed\n");
         exit(1);
     }
+    // set the stacktop
     void *stacktop = stack + attr->stacksize;
 
     // set the flags
     int flags = CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_SYSVSEM | CLONE_THREAD;
 
-    // if (attr->jointype == FOOTHREAD_DETACHED)
-    // {
-    // flags |= CLONE_THREAD;
-    // }
-
     // create the thread
     pid_t tid = clone(start_routine, stacktop, flags, arg);
 
+    // check if the thread is created
     if (tid == -1)
     {
         perror("Clone failed\n");
@@ -129,6 +128,8 @@ void foothread_exit(void)
     {
         if (threads[i].tid == gettid() && threads[i].ptid != gettid())
         {
+            // it is a child thread
+
             // if the thread is joinable, signal tsem
             if (threads[i].jointype == FOOTHREAD_JOINABLE)
             {
@@ -162,9 +163,10 @@ void foothread_exit(void)
 // initialize the mutex
 void foothread_mutex_init(foothread_mutex_t *mutex)
 {
+    // get the key for the mutex
     key_t key = ftok("foothread.c", mutexkey++);
     mutex->mutid = semget(key, 1, 0666 | IPC_CREAT);
-    // set the semaphore to 1
+    // set the value of the semaphore to 1
     semctl(mutex->mutid, 0, SETVAL, 1);
 }
 
@@ -214,8 +216,12 @@ void foothread_mutex_destroy(foothread_mutex_t *mutex)
 // initialize the barrier
 void foothread_barrier_init(foothread_barrier_t *barrier, int max)
 {
+    // set the max and count
     barrier->max = max;
     barrier->count = 0;
+
+    // get the key for the mutex and semaphore
+    // set the value of the semaphore to 0 and the mutex to 1
     key_t key = ftok("foothread.c", mutexkey++);
     barrier->mutid = semget(key, 1, 0666 | IPC_CREAT);
     semctl(barrier->mutid, 0, SETVAL, 1);
