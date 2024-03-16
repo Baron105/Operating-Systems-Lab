@@ -80,18 +80,21 @@ int mutexkey = 105;                     // key for the mutex, will be incremente
 table_t threads[FOOTHREAD_THREADS_MAX];
 
 // function prototypes for thread creation, initialization, and exit
+
 void foothread_create(foothread_t *, foothread_attr_t *, int (*)(void *), void *);
 void foothread_attr_setjointype(foothread_attr_t *, int);
 void foothread_attr_setstacksize(foothread_attr_t *, int);
 void foothread_exit(void);
 
 // function prototypes for mutex
+
 void foothread_mutex_init(foothread_mutex_t *);
 void foothread_mutex_lock(foothread_mutex_t *);
 void foothread_mutex_unlock(foothread_mutex_t *);
 void foothread_mutex_destroy(foothread_mutex_t *);
 
 // function prototypes for barrier
+
 void foothread_barrier_init(foothread_barrier_t *, int);
 void foothread_barrier_wait(foothread_barrier_t *);
 void foothread_barrier_destroy(foothread_barrier_t *);
