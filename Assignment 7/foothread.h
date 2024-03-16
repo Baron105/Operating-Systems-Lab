@@ -26,7 +26,7 @@ struct sembuf vop = {0, 1, 0};
 #define FOOTHREAD_JOINABLE 0
 #define FOOTHREAD_DETACHED 1
 
-#define FOOTHREAD_THREADS_MAX 100
+#define FOOTHREAD_THREADS_MAX 101
 #define FOOTHREAD_DEFAULT_STACK_SIZE 2097152
 #define FOOTHREAD_ATTR_INITIALIZER {FOOTHREAD_DEFAULT_STACK_SIZE, FOOTHREAD_DETACHED}
 
@@ -36,7 +36,6 @@ typedef struct table_t
     int stacksize;
     int jointype;
     pid_t ptid;
-    int semid;
     int child;
 } table_t;
 

@@ -138,7 +138,7 @@ int main()
         foothread_barrier_destroy(&barrier[i]);
     }
 
-    printf("Main thread exits\n");
+    // printf("Main thread exits\n");
 
     return 0;
 

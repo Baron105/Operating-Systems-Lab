@@ -14,6 +14,14 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
     {
         semctl(tmutex, 0, SETVAL, 1);
         semctl(tsem, 0, SETVAL, 0);
+
+        // also add the parent thread to the table
+        threads[num_threads].tid = gettid();
+        threads[num_threads].stacksize = FOOTHREAD_DEFAULT_STACK_SIZE;
+        threads[num_threads].jointype = FOOTHREAD_JOINABLE;
+        threads[num_threads].ptid = gettid();
+        threads[num_threads].child = 0;
+        num_threads++;
     }
     
     // lock the mutex
@@ -86,9 +94,6 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
         }
     }
 
-    // create a semaphore for the thread
-    // threads[num_threads - 1].semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
-
     // unlock the mutex
     signal(tmutex);
 }
@@ -96,21 +101,13 @@ void foothread_create(foothread_t *thread, foothread_attr_t *attr, int (*start_r
 // set jointype in the attribute
 void foothread_attr_setjointype(foothread_attr_t *attr, int jointype)
 {
-    // key_t key = ftok("foothread.c", 1);
-    // int tmutex = semget(key, 1, 0666 | IPC_CREAT);
-    // wait(tmutex);
     attr->jointype = jointype;
-    // signal(tmutex);
 }
 
 // set stacksize in the attribute
 void foothread_attr_setstacksize(foothread_attr_t *attr, int stacksize)
 {
-    // key_t key = ftok("foothread.c", 1);
-    // int tmutex = semget(key, 1, 0666 | IPC_CREAT);
-    // wait(tmutex);
     attr->stacksize = stacksize;
-    // signal(tmutex);
 }
 
 // exit the thread, more of a synchronization function
@@ -130,7 +127,7 @@ void foothread_exit(void)
     // check if the thread is in the table
     for (int i = 0; i < num_threads; i++)
     {
-        if (threads[i].tid == gettid())
+        if (threads[i].tid == gettid() && threads[i].ptid != gettid())
         {
             // if the thread is joinable, signal tsem
             if (threads[i].jointype == FOOTHREAD_JOINABLE)
@@ -139,32 +136,25 @@ void foothread_exit(void)
             }
             
             // clear the thread from the table
-            // threads[i].tid = 0;
-            // threads[i].stacksize = 0;
-            // threads[i].jointype = 0;
-            // threads[i].ptid = 0;
-            // semctl(threads[i].semid, 0, IPC_RMID, 0);
-            // threads[i].semid = 0;
-            // threads[i].child = 0;
-            // num_threads--;
+            threads[i].tid = 0;
+            threads[i].stacksize = 0;
+            threads[i].jointype = 0;
+            threads[i].ptid = 0;
+            threads[i].child = 0;
 
             // unlock the mutex
             signal(tmutex);
             return;
         }
-    }
-
-    // unlock the mutex
-    signal(tmutex);
-
-    // if we reach here, it means it is the parent thread
-    // wait for all the joinable threads to finish
-
-    for (int i = 0; i < num_threads; i++)
-    {
-        if (threads[i].ptid == current_tid && threads[i].jointype == FOOTHREAD_JOINABLE)
+        else if (threads[i].tid == gettid() && threads[i].ptid == gettid())
         {
-            wait(tsem);
+            // it is the parent thread, wait for the children to finish
+            signal(tmutex);
+            while (threads[i].child > 0)
+            {
+                wait(tsem);
+                threads[i].child--;
+            }
         }
     }
 }
