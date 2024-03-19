@@ -34,10 +34,16 @@ int main(int argc, char* argv[])
 	for (int i=0;i<22;i++)
 	{
 		fgets(line, 100, f);
-		char* token = strtok(line, d);
+		char cityname[20] = {'\0'};
+		int idx = 0;
+		for (int j=0;j<20;j++)
+		{
+			if (line[j]=='\0'||line[j]=='\n'||line[j]==' ') break;
+			cityname[j] = line[j];
+		}
 		fo = 1;
-		for (int j=0;j<l;j++) {
-			if (line[j]!=city[j]) fo = 0;
+		for (int j=0;j<strlen(cityname);j++) {
+			if (cityname[j]!=city[j]) fo = 0;
 		}
 
 		if (fo == 1)
@@ -45,37 +51,47 @@ int main(int argc, char* argv[])
 			// getting number of children
 			char ch = line[l+1];
 			int in = ch - 48;
-			for (int j=0;j<s;j++) printf("\t");
+			for (int j=0;j<s;j++) printf("    ");
 			printf("%s (%d)\n", city, getpid());
 
-			int id = l+3;
+			int id = l+2;
 			int ind = in;
+			// printf("%d\n", in);
 
 			while(ind--)
 			{
+				int level = 0;
 				char ncity[20]={'\0'};
 				int idx=0;
+				id++;
 				// extract child city
 				while (line[id]!='\0'&&line[id]!=' '&&line[id]!='\n') {
 					ncity[idx] = line[id];
 					idx++;
 					id++;
 				}
+
+				// printf("%s\n", ncity);
+
 				int pid = fork();
 
-				if (pid)
+				if (pid == 0)
 				{
+					level++;
 					// child
 					char buf[100];
-					sprintf(buf, "%d", s+in-ind);
+
+					// check if it is valid
+					if (ncity[0] == '\0') {
+						exit(0);
+					}
+					sprintf(buf, "%d", s+level);
 					execl("./proctree", "./proctree", ncity, buf, NULL);
 					exit(0);
 				}
 				else
 				{
-					// parent
-					while ((wait(NULL)) > 0);
-					exit(0);
+					wait(NULL);
 				}
 			}
 
