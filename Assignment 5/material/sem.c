@@ -92,6 +92,9 @@ main()
         semaphores and see how they synchronize the producer and the
         consumer to wait for each other.
     */
+
+           semctl(semid1, 0, IPC_RMID, 0);
+        semctl(semid2, 0, IPC_RMID, 0);
     if (fork() == 0)
     {
 
@@ -110,6 +113,8 @@ main()
             V(semid2);
             count--;
         }
+
+
     }
     else
     {
@@ -140,7 +145,6 @@ main()
            sure that noone else is using it.
          */
 
-        semctl(semid1, 0, IPC_RMID, 0);
-        semctl(semid2, 0, IPC_RMID, 0);
+        
     }
 }
