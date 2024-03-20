@@ -27,7 +27,7 @@ int main(void)
 		// This read blocks.  Fortunately, the child
 		// writes to it in non-blocking mode and then closes it,
 		// causing the OS trigger this process to wake up.
-		read(pfds[0], buf, 5);
+		// read(pfds[0], buf, 5);
 		printf("PARENT: read \"%s\"\n", buf);
 		wait(NULL);
 	}

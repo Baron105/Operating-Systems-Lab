@@ -16,7 +16,7 @@
 
 int main()
 {
-	char *arglist[3];
+	char *arglist[3] = {"cal","2012",NULL}; /*
 
 	/*  "cal" is an application which shows the calendar of the
 	    current year and month. "cal" with an argument specifying
@@ -29,9 +29,6 @@ int main()
 	*/
 
 	/* Initialize the argument list */
-	arglist[0] = (char *)malloc(4*sizeof(char)); strcpy(arglist[0],"cal");
-	arglist[1] = (char *)malloc(5*sizeof(char)); strcpy(arglist[1],"2012");
-	arglist[2] = NULL;
 
 	/* Call execvp */
 	execvp("cal",arglist); 
